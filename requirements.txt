@@ -1,0 +1,11 @@
+numpy
+pandas
+scipy
+scikit-learn
+torch
+transformers
+rdkit
+omegaconf
+PyYAML
+prettytable
+tqdm

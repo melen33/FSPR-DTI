@@ -1,0 +1,82 @@
+DrugEncoder:
+  model: 'RoBert'
+  d_model : 256
+  n_layer : 3
+  n_head : 8
+  attention : 'OriginMHA'
+  activation : 'gelu'
+  dropout : 0.1
+  vocab_size : 2362
+
+PrEncoder:
+  d_model : 1280
+
+TransformerDeocder:
+  d_model: 256
+  n_layer: 3
+  n_head: 8
+  attention: 'OriginMHA'
+  activation: 'gelu'
+  dropout : 0.1
+
+
+# Frozen offline protein feature backend. ESM2 remains the reproducible default.
+protein_encoder_backend: "esm2"
+esmc_600m_hidden_dim: 1152
+esmc_600m_model_name: "esmc_600m"
+
+drug_encoder_backend: "native"
+pretrained_molformer_path: "models/drug/molformer"
+
+# Auxiliary objective kept after ablation study
+use_mlm: true
+use_drug_flex: false
+drug_flex_dim: 1
+drug_flex_path: ""
+drug_flex_log1p: true
+use_protein_flex: false
+protein_flex_path: ""
+protein_flex_pooling: "mean_max_std"
+use_protein_induced_gate: false
+return_flex_stats: false
+use_drug_flex_condition: true
+protein_flex_perturbation: "none"
+use_flex_film: false
+film_side: "protein"
+film_hidden_dim: 128
+film_dropout: 0.1
+film_gamma_scale: 0.5
+film_beta_scale: 0.1
+film_use_protein_flex: true
+film_use_drug_flex: true
+film_mode: "scale_shift"
+film_flex_encoding: "raw"
+film_flex_embed_dim: 16
+return_film_stats: false
+film_protein_flex_perturbation: "none"
+induced_beta_init: 0.0
+induced_gate_hidden_dim: 128
+induced_modulation_type: "gate"
+drug_induced_beta_init: 0.0
+drug_induced_gate_hidden_dim: 128
+predictor_include_induced_delta_pools: false
+# DTI prediction readout. Defaults preserve the original masked-mean + linear classifier.
+predictor_pooling: "mean"
+predictor_head: "linear"
+predictor_dropout: 0.1
+compute_if_score: false
+relation_alignment_enabled: false
+relation_alignment_weight: 0.05
+relation_alignment_side: "both"
+teacher_temperature: 0.1
+student_temperature: 0.1
+response_dim: 128
+positive_only_alignment: true
+min_positive_for_alignment: 3
+response_source: "cross_attention_residual"
+alignment_target: "none"
+save_if_score_path: ""
+target_protein_for_case_study: ""
+if_score_alpha: 0.5
+conformation_pretrained_checkpoint: ""
+conformation_pretrained_lr_scale: 0.1

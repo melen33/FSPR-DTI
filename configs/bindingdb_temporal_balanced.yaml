@@ -1,0 +1,68 @@
+run:
+  data: bindingdb
+  split: temporal_binary
+  fold: 1
+  task-mode: binary
+  temporal-binary-root: datasets/bindingdb_temporal_balanced_v1/prepared
+  protein-feature-path: datasets/bindingdb_temporal_binary_core_v1/prepared/pr_f_1280_2000.pkl
+  protein-flex-path: datasets/bindingdb_temporal_binary_core_v1/prepared/protein_flex_dynamine.csv
+  cv-results-file: results/bindingdb_temporal_balanced_seed6/cv_results.txt
+model:
+  drug-encoder-backend: native
+  protein-encoder-backend: esm2
+  no-drug-flex: true
+  no-protein-flex: true
+  no-protein-induced-gate: true
+  no-drug-induced-gate: true
+  no-flex-attention-bias: true
+  no-flex-calibration: true
+  no-relation-alignment: true
+  alignment-target: none
+  predictor-pooling: protein_attention
+  predictor-head: interaction_mlp
+  predictor-dropout: 0.3434054428154003
+  use-flex-film: true
+  film-side: protein
+  film-mode: shift_only
+  film-flex-encoding: raw
+  film-hidden-dim: 128
+  film-dropout: 0.17417972429120782
+  film-beta-scale: 0.018089762294701862
+  protein-film-use-protein-flex: true
+  no-protein-film-use-drug-flex: true
+structure:
+  structure-supervision-root: datasets/apo_holo/structure_supervision/dti3_global_fold1_seed6_gearnet_semantic
+  structure-supervision-batch-size: 4
+  structure-supervision-weight: 0.0025
+  structure-supervision-geometry-weight: 1.0
+  structure-supervision-mode: pocket_residue
+  structure-supervision-interval: 4
+  structure-supervision-margin: 0.1
+  structure-supervision-ranking-weight: 0.0
+  structure-supervision-site-ranking-weight: 0.0
+training:
+  task_mode: binary
+  TRAIN:
+    BATCH_SIZE: 64
+    MAX_EPOCH: 10
+    SEED: 6
+    VALIDATION_SELECTION_METRIC: auroc_plus_auprc
+    LR: 0.00018591028379590482
+    WEIGHT_DECAY: 0.00006000434379218488
+    lambda_mlm: 1.0
+    MASK_PROBABILITY: 0.15
+    TARGET_RANDOM_DROP_RATIO: 0.7
+    MLM: true
+    PR_PATH: pr_f_1280_2000.pkl
+    SAVE_MODEL: true
+    SAVE_LAST_EPOCH: true
+    OUTPUT_DIR: bindingdb_temporal_balanced_full_seed6_
+    QUIET_PROGRESS: true
+    EARLY_STOP: true
+    EARLY_STOP_PATIENCE: 3
+    EARLY_STOP_DELTA: 0.0
+    USE_AMP: false
+    GRAD_CLIP: 1.0
+    GRADIENT_ACCUMULATION_STEPS: 1
+  TEST:
+    COLLECT_EMB: true
