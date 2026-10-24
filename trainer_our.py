@@ -1137,7 +1137,12 @@ class Trainer(object):
             })
         return rows
 
-    def test(self, dataloader="test"):
+    def test(self, dataloader="test", _return_threshold=False):
+        # Fit on validation predictions from this exact model state, including
+        # checkpoint-only evaluation. Never reuse a threshold from another epoch.
+        optimal_threshold = None
+        if self.task_mode != "regression" and dataloader == "test":
+            optimal_threshold = self.test(dataloader="val", _return_threshold=True)
         y_label, y_pred = [], []
         if_score_rows = []
         prediction_rows = []
@@ -1205,13 +1210,20 @@ class Trainer(object):
         auroc = roc_auc_score(y_label, y_pred)
         auprc = average_precision_score(y_label, y_pred)
         if dataloader != "test":
+            if _return_threshold:
+                fpr, tpr, thresholds = roc_curve(y_label, y_pred)
+                # ROC may include an infinite/supra-probability sentinel. Keep
+                # only realizable probability thresholds, with stable first tie.
+                valid = np.isfinite(thresholds) & (thresholds >= 0) & (thresholds <= 1)
+                if not valid.any() or len(np.unique(y_label)) != 2:
+                    raise ValueError("Threshold selection requires both validation classes and finite probability thresholds.")
+                candidates = np.flatnonzero(valid)
+                return float(thresholds[candidates[np.argmax((tpr - fpr)[valid])]])
             return auroc, auprc
-        fpr, tpr, thresholds = roc_curve(y_label, y_pred)
-        optimal_threshold = thresholds[np.argmax(tpr - fpr)]
         y_bin = (np.array(y_pred) >= optimal_threshold).astype(int)
         tn, fp, fn, tp = confusion_matrix(y_label, y_bin).ravel()
         return (
-            auroc, auprc, f1_score(y_label, y_bin), precision_score(y_label, y_bin),
+            auroc, auprc, f1_score(y_label, y_bin, zero_division=0), precision_score(y_label, y_bin, zero_division=0),
             tp / (tp + fn), tn / (tn + fp), accuracy_score(y_label, y_bin),
             matthews_corrcoef(y_label, y_bin), optimal_threshold,
         )
